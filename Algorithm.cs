@@ -5,7 +5,7 @@ namespace NeuralNetwork
 {
     internal static class Algorithm
     {
-        public static int ForwardPropClassify(Layer[] Layers, double[] Inputs)
+        private static int ForwardPropClassify(Layer[] Layers, double[] Inputs)
         {
             /*
              * 1) set first layer outputs as inputs to the forward prop - must be 1d array
@@ -89,7 +89,7 @@ namespace NeuralNetwork
 
             return index;
         }
-        public static double[] ForwardProp(Layer[] Layers, double[] Inputs)
+        private static double[] ForwardProp(Layer[] Layers, double[] Inputs)
         {
             /*
              * 1) set first layer outputs as inputs to the forward prop - must be 1d array
@@ -101,7 +101,6 @@ namespace NeuralNetwork
             {
                 Layers[0].Outputs[i] = Inputs[i];
             }
-
 
             for (int i = 1; i < Layers.Length; i++) //forward prop
             {
@@ -125,7 +124,7 @@ namespace NeuralNetwork
         // IMPORTANT!
         // Cost function C is referenced all throughout this backprop section, any cost functions can be used, but respective changes to the formulas must be made due to calculus chain rule differentiation
         // In this case it is: C = (a(n) - y)^2, or the Mean Squared Error (MSE) function, where a(n) = actual outputs, and y = expected outputs.
-        public static void CalculateGradients(Layer[] Layers, double[] Target)
+        private static void CalculateGradients(Layer[] Layers, double[] Target)
         {
             /*
              * 1) calculate last layer dCdZ and save it to the array
@@ -157,7 +156,7 @@ namespace NeuralNetwork
                 }
             }
         }
-        public static void UpdateParameters(Layer[] Layers, double LearnRate)
+        private static void UpdateParameters(Layer[] Layers, double LearnRate)
         {
             /*
              * 1) for each pair of curr and prev layers, use curr dC/dZ(n) and prev a(n-1) to find dC/dW(n)

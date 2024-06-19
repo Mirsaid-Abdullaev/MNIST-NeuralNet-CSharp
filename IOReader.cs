@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Linq;
 
 namespace NeuralNetwork
 {
@@ -11,6 +10,10 @@ namespace NeuralNetwork
         private static double[] CreateOneHot(byte Label)
         {
             double[] Result = null;
+            if (Label > 9)
+            {
+                throw new Exception("Error: label number is not within 0-9, cannot create a 10-length One Hot formatted array from this digit.");
+            }
             switch (Label)
             {
                 case 0:
@@ -71,7 +74,6 @@ namespace NeuralNetwork
             }
             return Outputs;
         }
-
         public static double[][] GetTrainingDataOutputs(int max = 0)
         {
             double[][] Outputs;
@@ -124,8 +126,6 @@ namespace NeuralNetwork
             }
             return Outputs; //outputs stores images in sequential order like [image1, image2, image3...] where image = [0, 1, 2, ..., 783] each pixel value
         }
-
-
         public static double[][] GetTestDataInputs(int max = 0)
         {
             double[][] Outputs; //each row is an image
@@ -163,44 +163,51 @@ namespace NeuralNetwork
             {
                 throw new Exception("Error: no file found at the specified location.");
             }
-            string[] NetData = ParseFile(FilePath);
-            int NoOfLayers = Convert.ToInt32(NetData[0]);
-            Layer[] Layers = new Layer[NoOfLayers];
-            string[] LayerData = NetData[1].Split(',');
-            Layers[0] = new Layer(Convert.ToInt32(LayerData[0]), 0);
-
-            //input layer has no prev neurons and no weights matrix or bias
-            for (int i = 2; i <= NoOfLayers; i++)
+            try
             {
-                LayerData = NetData[i].Split(',');
-                int currNeurons = Convert.ToInt32(LayerData[0]);
-                int prevNeurons = Convert.ToInt32(LayerData[1]);
+                string[] NetData = ParseFileCsv(FilePath);
+                int NoOfLayers = Convert.ToInt32(NetData[0]);
+                Layer[] Layers = new Layer[NoOfLayers];
+                string[] LayerData = NetData[1].Split(',');
+                Layers[0] = new Layer(Convert.ToInt32(LayerData[0]), 0);
 
-                double[][] Weights = new double[prevNeurons][];
-                double[] Bias = new double[currNeurons];
-                int currRow = -1;
-                for (int j = 2; j < 2 + prevNeurons * currNeurons; j++)
+                //input layer has no prev neurons and no weights matrix or bias
+                for (int i = 2; i <= NoOfLayers; i++)
                 {
-                    int col = (j - 2) % currNeurons;
-                    if (col == 0) //creating a new row
+                    LayerData = NetData[i].Split(',');
+                    int currNeurons = Convert.ToInt32(LayerData[0]);
+                    int prevNeurons = Convert.ToInt32(LayerData[1]);
+
+                    double[][] Weights = new double[prevNeurons][];
+                    double[] Bias = new double[currNeurons];
+                    int currRow = -1;
+                    for (int j = 2; j < 2 + prevNeurons * currNeurons; j++)
                     {
-                        currRow++;
-                        Weights[currRow] = new double[currNeurons];
-                        Weights[currRow][col] = Convert.ToDouble(LayerData[j]);
+                        int col = (j - 2) % currNeurons;
+                        if (col == 0) //creating a new row
+                        {
+                            currRow++;
+                            Weights[currRow] = new double[currNeurons];
+                            Weights[currRow][col] = Convert.ToDouble(LayerData[j]);
+                        }
+                        else //on the same row
+                        {
+                            Weights[currRow][col] = Convert.ToDouble(LayerData[j]);
+                        }
                     }
-                    else //on the same row
+                    for (int j = 2 + prevNeurons * currNeurons; j < LayerData.Length; j++)
                     {
-                        Weights[currRow][col] = Convert.ToDouble(LayerData[j]);
+                        Bias[j - 2 - prevNeurons * currNeurons] = Convert.ToDouble(LayerData[j]);
                     }
+                    Layer layer = new Layer(currNeurons, prevNeurons, Weights, Bias);
+                    Layers[i - 1] = layer;
                 }
-                for (int j = 2 + prevNeurons * currNeurons; j < LayerData.Length; j++)
-                {
-                    Bias[j - 2 - prevNeurons * currNeurons] = Convert.ToDouble(LayerData[j]);
-                }
-                Layer layer = new Layer(currNeurons, prevNeurons, Weights, Bias);
-                Layers[i - 1] = layer;
+                return new NeuralNetwork(Layers);
             }
-            return new NeuralNetwork(Layers);
+            catch
+            {
+                throw new Exception("Error: file was not a correctly formatted NeuralNetwork file.");
+            }
         }
         private static int ReadBigInt32(this BinaryReader br)
         {
@@ -209,7 +216,7 @@ namespace NeuralNetwork
                 Array.Reverse(bytes);
             return BitConverter.ToInt32(bytes, 0);
         }
-        private static string[] ParseFile(string FilePath) //returns all the rows of a csv file
+        private static string[] ParseFileCsv(string FilePath) //returns all the rows of a csv file
         {
             string[] FullData;
             using (StreamReader reader = new StreamReader(FilePath))
@@ -225,7 +232,5 @@ namespace NeuralNetwork
             }
             return FullData; //returns all not-null data rows
         }
-
     }
-
 }

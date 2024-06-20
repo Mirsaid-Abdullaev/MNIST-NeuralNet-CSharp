@@ -1,5 +1,5 @@
 # Neural Network - MNIST Network from Scratch
-
+### Written by Mirsaid Abdullaev, 2024
 ## Summary
 <p>My goal for this project is to build a neural network structure and algorithm that is
 purely written without any external dependencies or special machine learning libraries.
@@ -96,11 +96,29 @@ static void Main()
 }
 ```
 
-Another feature of the `IOReader` is the ability to parse .csv files that have been used to store `NeuralNetwork` data in. The `NeuralNetwork` class provides a void method `NeuralNetwork.SaveNetwork(string FileName)` which deserialises and saves network data into a custom .csv. The `IOReader` provides a method:
+Another feature of the `IOReader` is the ability to parse .csv files that have been used to store `NeuralNetwork` data in. The `NeuralNetwork` class provides a void method `NeuralNetwork.SaveNetwork(string FileName)` which deserialises and saves network data into a custom .csv. The `IOReader` provides a static method to load a `NeuralNetwork` instance from a specified filepath.
 ```
 public static class IOReader
 {
     public static NeuralNetwork LoadNetwork(string FilePath);
+}
+```
+Putting it all together, the code to launch and initialise the training of the network is as follows:
+```
+static void Main()
+{
+    public int[] LayerStructure = new int[3] {784, 50, 10}; //this can be any size you want, given that 784 is input and 10 is output for use with MNIST
+
+    double[][] TrainData = IOReader.GetTrainingDataInputs();
+    double[][] TrainLabels = IOReader.GetTrainingDataOutputs();
+    double[][] TestData = IOReader.GetTestDataInputs();
+    double[][] TestLabels = IOReader.GetTestDataOutputs();
+
+    //the above code loads up the MNIST dataset into memory, which is used for training and validating the network
+
+    NeuralNetwork Network = new NeuralNetwork(LayerStructure); //this will create the layer classes required for the network and set the initial parameters
+
+    Algorithm.TrainNetwork(Network, TrainData, TrainLabels, TestData, TestLabels, 0.015); //you can tune the learning rate based on convergence performance
 }
 ```
 
@@ -121,3 +139,8 @@ carry out a validation iteration.</p>
 <p>As of now, the performance benchmarks I have established are as follows:</p>
 <li>Average time for one training iteration: 13-15 seconds</li>
 <li>Average time for one validation iteration: 0.5 - 1 second</li>
+
+### Written by Mirsaid Abdullaev, 2024
+## Contact Details
+### Email: abdullaevm017@gmail.com
+### LinkedIn: www.linkedin.com/in/mirsaid-abdullaev-6a4ab5242/

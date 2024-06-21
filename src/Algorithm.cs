@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Threading;
+using static NeuralNetwork.MathUtil;
 
 namespace NeuralNetwork
 {
@@ -182,12 +184,12 @@ namespace NeuralNetwork
         }
         // --- END BACKPROPAGATION --- //
 
-        public static void TrainNetwork(NeuralNetwork Network, double[][] TrainData, double[][] TrainLabels, double[][] TestData, double[][] TestLabels, double LearnRate)
+        public static void TrainNetwork(NeuralNetwork Network, double[][] TrainData, double[][] TrainLabels, double[][] TestData, double[][] TestLabels, double LearnRate, int Epochs)
         {
             Stopwatch stopwatch = new Stopwatch();
             float prev_accuracy = GetPercentageAccuracy(Network, TestData, TestLabels);
             Console.WriteLine($"Epoch 0: initialisation. Initial performance: {prev_accuracy}.");
-            for (int epoch = 1; epoch < 100; epoch++)
+            for (int epoch = 1; epoch < Epochs; epoch++)
             {
                 stopwatch.Start();
                 for (int i = 0; i < TrainData.Length; i++)
@@ -276,10 +278,43 @@ namespace NeuralNetwork
             }
             return (float)count / TestData.Length * 100;
         }
-
+        public static void BenchmarkConvergence(NeuralNetwork Network, double[][] TrainData, double[][] TrainLabels, double[][] TestData, double[][] TestLabels)
+        {
+            Stopwatch stopwatch = new Stopwatch();
+            float accuracy = GetPercentageAccuracy(Network, TestData, TestLabels);
+            TimeSpan total_training = new TimeSpan(0);
+            TimeSpan total_validating = new TimeSpan(0);
+            float initial_accuracy = accuracy;
+            Console.WriteLine($"Epoch 0: initialisation. Initial performance: {accuracy}.");
+            for (int epoch = 1; epoch < 100; epoch++)
+            {
+                stopwatch.Start();
+                for (int i = 0; i < TrainData.Length; i++)
+                {
+                    ForwardProp(Network.Layers, TrainData[i]);
+                    CalculateGradients(Network.Layers, TrainLabels[i]);
+                    UpdateParameters(Network.Layers, 0.05);
+                }
+                stopwatch.Stop();
+                TimeSpan temp = stopwatch.Elapsed;
+                total_training += temp;
+                stopwatch.Restart();
+                accuracy = GetPercentageAccuracy(Network, TestData, TestLabels);
+                stopwatch.Stop();
+                total_validating += stopwatch.Elapsed;
+                Console.WriteLine($"Epoch {epoch} completed. Current performance %: {accuracy}. Epoch training time: {temp}. Test run time: {stopwatch.Elapsed}");
+                stopwatch.Reset();
+            }
+            Console.WriteLine();
+            Console.WriteLine("-------Benchmark complete. Results:-------");
+            Console.WriteLine($"Final accuracy rate (after 100 epochs): {accuracy}%");
+            Console.WriteLine($"Average accuracy improvement per epoch: {(accuracy - initial_accuracy) / 100}%");
+            Console.WriteLine($"Average time to run a training epoch: {total_training / 100}");
+            Console.WriteLine($"Average time to run a validation epoch: {total_validating / 100}%");
+        }
 
         // ------------- NEW OPTIMISED NETWORK CODE ---------------------------
-        public static void TrainNetwork(OptimisedNetwork Network, double[][] TrainData, double[][] TrainLabels, double[][] TestData, double[][] TestLabels, double LearnRate)
+        public static void TrainNetwork(OptimisedNetwork Network, double[][] TrainData, double[][] TrainLabels, double[][] TestData, double[][] TestLabels, double LearnRate, int Epochs)
         {
             Stopwatch stopwatch = new Stopwatch();
             float prev_accuracy = GetPercentageAccuracy(Network, TestData, TestLabels);
@@ -537,28 +572,6 @@ namespace NeuralNetwork
                 max = -1;
             }
             return (float)count / TestData.Length * 100;
-        }
-
-        public static double Sigmoid(double x)
-        {
-            if (x > 40)
-            {
-                return 1;
-            }
-            else if (x < -40)
-            {
-                return 0;
-            }
-            return 1 / (1 + Math.Exp(-x));
-        }
-        public static double Sigmoid_Deriv(double x)
-        {
-            if (x > 40 || x < -40)
-            {
-                return 0;
-            }
-            double y = Sigmoid(x); //y = sigmoid(x)
-            return y * (1 - y); //d(sigmoidx)/dx = y(1-y)
         }
     }
 }

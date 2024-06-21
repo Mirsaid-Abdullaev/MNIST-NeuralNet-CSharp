@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using static NeuralNetwork.MathUtil;
 
 namespace NeuralNetwork
 {
@@ -7,49 +8,6 @@ namespace NeuralNetwork
     {
         static readonly string projectDirectory = "D:\\NeuralNetwork";
 
-        private static double[] CreateOneHot(byte Label)
-        {
-            double[] Result = null;
-            if (Label > 9)
-            {
-                throw new Exception("Error: label number is not within 0-9, cannot create a 10-length One Hot formatted array from this digit.");
-            }
-            switch (Label)
-            {
-                case 0:
-                    Result = new double[] { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-                    break;
-                case 1:
-                    Result = new double[] { 0, 1, 0, 0, 0, 0, 0, 0, 0, 0 };
-                    break;
-                case 2:
-                    Result = new double[] { 0, 0, 1, 0, 0, 0, 0, 0, 0, 0 };
-                    break;
-                case 3:
-                    Result = new double[] { 0, 0, 0, 1, 0, 0, 0, 0, 0, 0 };
-                    break;
-                case 4:
-                    Result = new double[] { 0, 0, 0, 0, 1, 0, 0, 0, 0, 0 };
-                    break;
-                case 5:
-                    Result = new double[] { 0, 0, 0, 0, 0, 1, 0, 0, 0, 0 };
-                    break;
-                case 6:
-                    Result = new double[] { 0, 0, 0, 0, 0, 0, 1, 0, 0, 0 };
-                    break;
-                case 7:
-                    Result = new double[] { 0, 0, 0, 0, 0, 0, 0, 1, 0, 0 };
-                    break;
-                case 8:
-                    Result = new double[] { 0, 0, 0, 0, 0, 0, 0, 0, 1, 0 };
-                    break;
-                case 9:
-                    Result = new double[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 };
-                    break;
-            }
-
-            return Result;
-        }
         public static double[][] GetTestDataOutputs(int max = 0) //array of 10,000 image labels stored sequentially in one-hot encoding
         {
             double[][] Outputs;
@@ -69,7 +27,7 @@ namespace NeuralNetwork
 
                 for (int i = 0; i < numLabels; i++)
                 {
-                    Outputs[i] = CreateOneHot(brLabels.ReadByte());
+                    Outputs[i] = CreateOneHot(brLabels.ReadByte(), 10);
                 }
             }
             return Outputs;
@@ -92,7 +50,7 @@ namespace NeuralNetwork
 
                 for (int i = 0; i < numLabels; i++)
                 {
-                    Outputs[i] = CreateOneHot(brLabels.ReadByte());
+                    Outputs[i] = CreateOneHot(brLabels.ReadByte(), 10);
                 }
             }
 

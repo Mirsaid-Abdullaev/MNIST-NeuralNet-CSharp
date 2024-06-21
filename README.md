@@ -34,6 +34,8 @@ optimisation/minimisation problems in your own time.</p>
 - I have created a network model that can perform feedforward propagation as well as backpropagation for training the model on the MNIST dataset. I have written my own `IOReader` class that I use to parse and load the data from the MNIST files into the program, I have made a `NeuralNetwork` class that holds an array of `Layer` classes, and a `Layer` class that holds each layer's respective weights matrix, bias matrix, output values and gradient matrix for use in backpropagation.
 - I have now also added an `OptimisedNetwork` class, and class-specific methods to utilise this to train a neural network. This class mimics the way that my original `NeuralNetwork` class works, albeit I tried to see whether 3D-array use instead of a `Layer` class list. This has proven to be a lot less effective in terms of performance however.
 - I am currently working on implementing my first mathematical optimisation to improve convergence, and I am preparing a benchmark for measuring model convergence speed. This will be using a set amount of training iterations (100) and the same predefined starting weights and biases matrices to keep the benchmarking fair. The accuracy rate after 100 training iterations will be the third statistic to measure.
+- I have created the benchmark method to formally collect all the performance data during runtime, the static method `Algorithm.BenchmarkConvergence()` which calculates average time per training/validation epoch, average improvement in accuracy per epoch and the final accuracy of the network, while keeping the test fair by using the same starting parameters as saved in the `/Utils/ConvergenceTestnet.csv` file in this repository
+- Usage of the Benchmark method shown below as well:
 
 ### Usage in code - `NeuralNetwork` class examples
 To initialise a new neural network, create an array of integers where the integers represent the number of neurons in each layer of your desired model, for example as follows. This will create all the Layer classes within its definition and initialise all the required parameters for first time use.
@@ -55,10 +57,12 @@ There is an Algorithm static class that is responsible for providing training fo
 
 **`TestLabels`** should have all the corresponding labels for the given test data items, and the data items must be the same length as the train labels.
 
+**`Epochs`** should specify the number of training epochs to perform by the algorithm.
+
 ```
 public static class Algorithm
 {
-    public static void TrainNetwork(NeuralNetwork Network, double[][] TrainData, double[][] TrainLabels, double[][] TestData, double[][] TestLabels, double LearnRate);
+    public static void TrainNetwork(NeuralNetwork Network, double[][] TrainData, double[][] TrainLabels, double[][] TestData, double[][] TestLabels, double LearnRate, int Epochs);
 }
 ```
 
@@ -119,7 +123,32 @@ static void Main()
 
     NeuralNetwork Network = new NeuralNetwork(LayerStructure); //this will create the layer classes required for the network and set the initial parameters
 
-    Algorithm.TrainNetwork(Network, TrainData, TrainLabels, TestData, TestLabels, 0.015); //you can tune the learning rate based on convergence performance
+    Algorithm.TrainNetwork(Network, TrainData, TrainLabels, TestData, TestLabels, 0.015, 50); //you can tune the learning rate based on convergence performance, and number of epochs is variable too
+}
+```
+
+As described above, the addition of the benchmarking method is implemented in the `Algorithm` static class as well. It is almost identical to the `TrainNetwork()` method, but does not take in a learning rate (it is fixed as 0.05 in the code) and it does not take in number of epochs (also fixed in the code, at 100). It outputs the benchmark results upon completing the 100 iterations. Here is the signature for the `BenchmarkConvergence()` method:
+
+```
+public static class Algorithm
+{
+    public static void BenchmarkConvergence(NeuralNetwork Network, double[][] TrainData, double[][] TrainLabels, double[][] TestData, double[][] TestLabels);
+}
+```
+
+Finally, to show how you would set up a benchmark for the code, here is a sample of the code in Program.cs file that you would need to run:
+
+```
+static void Main()
+{
+    NeuralNetwork network = IOReader.LoadNetwork(".../Utils/ConvergenceTestnet.csv"); //the preceding path must be modified to reflect your own project directory 
+
+    double[][] TrainData = IOReader.GetTrainingDataInputs();
+    double[][] TrainLabels = IOReader.GetTrainingDataOutputs();
+    double[][] TestData = IOReader.GetTestDataInputs();
+    double[][] TestLabels = IOReader.GetTestDataOutputs();
+
+    Algorithm.BenchmarkConvergence(network, TrainData, TrainLabels, TestData, TestLabels);    
 }
 ```
 
@@ -144,8 +173,6 @@ The initial `NeuralNetwork` class using a list of `Layer` classes for the feedfo
 After adding the `OptimisedNetwork` class, which removed the use of a `Layer` class to store data and instead converted this data storage into a 3D array implementation, I have encountered a worsening of performance by a significant amount. The bencharks for the `OptimisedNetwork` class are as follows:
 - Average time for one training iteration: 50-60 seconds (over 3x more than using the `NeuralNetwork` class)
 - Average time for one validation iteration: 2 - 2.5 seconds (same as above, over 2.5x slower)
-
-
 
 ### Written by Mirsaid Abdullaev, 2024
 ## Contact Details

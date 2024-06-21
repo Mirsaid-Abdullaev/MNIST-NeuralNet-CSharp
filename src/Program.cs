@@ -4,7 +4,7 @@
     {
         static void Main()
         {
-            NeuralNetwork network = IOReader.LoadNetwork(".../Utils/ConvergenceTestnet.csv"); //the preceding path must be modified to reflect your own project directory 
+            NeuralNetwork network = IOReader.LoadNetworkFromPath(@"...\Utils\ConvergenceTestnet.csv"); //the preceding path must be modified to reflect your own project directory 
 
             double[][] TrainData = IOReader.GetTrainingDataInputs();
             double[][] TrainLabels = IOReader.GetTrainingDataOutputs();

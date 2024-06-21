@@ -115,7 +115,7 @@ namespace NeuralNetwork
             return Outputs;
         }
 
-        public static NeuralNetwork LoadNetwork(string FileName)
+        public static NeuralNetwork LoadNetworkFromAppData(string FileName)
         {
             string FilePath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + @"\MNIST_Net\" + FileName + ".csv";
             if (!File.Exists(FilePath))
@@ -168,6 +168,59 @@ namespace NeuralNetwork
                 throw new Exception("Error: file was not a correctly formatted NeuralNetwork file.");
             }
         }
+        public static NeuralNetwork LoadNetworkFromPath(string FilePath)
+        {
+            if (!File.Exists(FilePath))
+            {
+                throw new Exception("Error: no file found at the specified location.");
+            }
+            try
+            {
+                string[] NetData = ParseFileCsv(FilePath);
+                int NoOfLayers = Convert.ToInt32(NetData[0]);
+                Layer[] Layers = new Layer[NoOfLayers];
+                string[] LayerData = NetData[1].Split(',');
+                Layers[0] = new Layer(Convert.ToInt32(LayerData[0]), 0);
+
+                //input layer has no prev neurons and no weights matrix or bias
+                for (int i = 2; i <= NoOfLayers; i++)
+                {
+                    LayerData = NetData[i].Split(',');
+                    int currNeurons = Convert.ToInt32(LayerData[0]);
+                    int prevNeurons = Convert.ToInt32(LayerData[1]);
+
+                    double[][] Weights = new double[prevNeurons][];
+                    double[] Bias = new double[currNeurons];
+                    int currRow = -1;
+                    for (int j = 2; j < 2 + prevNeurons * currNeurons; j++)
+                    {
+                        int col = (j - 2) % currNeurons;
+                        if (col == 0) //creating a new row
+                        {
+                            currRow++;
+                            Weights[currRow] = new double[currNeurons];
+                            Weights[currRow][col] = Convert.ToDouble(LayerData[j]);
+                        }
+                        else //on the same row
+                        {
+                            Weights[currRow][col] = Convert.ToDouble(LayerData[j]);
+                        }
+                    }
+                    for (int j = 2 + prevNeurons * currNeurons; j < LayerData.Length; j++)
+                    {
+                        Bias[j - 2 - prevNeurons * currNeurons] = Convert.ToDouble(LayerData[j]);
+                    }
+                    Layer layer = new Layer(currNeurons, prevNeurons, Weights, Bias);
+                    Layers[i - 1] = layer;
+                }
+                return new NeuralNetwork(Layers);
+            }
+            catch
+            {
+                throw new Exception("Error: file was not a correctly formatted NeuralNetwork file.");
+            }
+        }
+
         public static OptimisedNetwork LoadOptNetwork(string FileName)
         {
             string FilePath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + @"\MNIST_Net\" + FileName + ".csv";

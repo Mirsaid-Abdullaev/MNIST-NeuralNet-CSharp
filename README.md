@@ -105,7 +105,8 @@ Another feature of the `IOReader` is the ability to parse .csv files that have b
 ```
 public static class IOReader
 {
-    public static NeuralNetwork LoadNetwork(string FilePath);
+    public static NeuralNetwork LoadNetworkFromPath(string FilePath); //for loading networks from any specified file paths
+    public static NeuralNetwork LoadNetworkFromAppData(string FileName); //for loading in networks that have been saved by default in ...\AppData\Local\MNIST_Net\FileName.csv"
 }
 ```
 Putting it all together, the code to launch and initialise the training of the network is as follows:
@@ -141,7 +142,7 @@ Finally, to show how you would set up a benchmark for the code, here is a sample
 ```
 static void Main()
 {
-    NeuralNetwork network = IOReader.LoadNetwork(".../Utils/ConvergenceTestnet.csv"); //the preceding path must be modified to reflect your own project directory 
+    NeuralNetwork network = IOReader.LoadNetworkFromPath(@"...\Utils\ConvergenceTestnet.csv"); //the preceding path must be modified to reflect your own project directory 
 
     double[][] TrainData = IOReader.GetTrainingDataInputs();
     double[][] TrainLabels = IOReader.GetTrainingDataOutputs();

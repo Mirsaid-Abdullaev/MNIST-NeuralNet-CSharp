@@ -35,7 +35,7 @@ optimisation/minimisation problems in your own time.</p>
 - I have now also added an `OptimisedNetwork` class, and class-specific methods to utilise this to train a neural network. This class mimics the way that my original `NeuralNetwork` class works, albeit I tried to see whether 3D-array use instead of a `Layer` class list. This has proven to be a lot less effective in terms of performance however.
 - I am currently working on implementing my first mathematical optimisation to improve convergence, and I am preparing a benchmark for measuring model convergence speed. This will be using a set amount of training iterations (100) and the same predefined starting weights and biases matrices to keep the benchmarking fair. The accuracy rate after 100 training iterations will be the third statistic to measure.
 
-### Usage in code - NeuralNetwork class examples
+### Usage in code - `NeuralNetwork` class examples
 To initialise a new neural network, create an array of integers where the integers represent the number of neurons in each layer of your desired model, for example as follows. This will create all the Layer classes within its definition and initialise all the required parameters for first time use.
 
 ```
@@ -58,7 +58,7 @@ There is an Algorithm static class that is responsible for providing training fo
 ```
 public static class Algorithm
 {
-	public static void TrainNetwork(NeuralNetwork Network, double[][] TrainData, double[][] TrainLabels, double[][] TestData, double[][] TestLabels, double LearnRate);
+    public static void TrainNetwork(NeuralNetwork Network, double[][] TrainData, double[][] TrainLabels, double[][] TestData, double[][] TestLabels, double LearnRate);
 }
 ```
 

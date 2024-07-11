@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace NeuralNetwork
+namespace NeuralNetworks
 {
     internal static class MathUtil
     {

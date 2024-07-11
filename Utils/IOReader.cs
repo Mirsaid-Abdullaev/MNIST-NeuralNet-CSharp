@@ -1,8 +1,8 @@
 ﻿using System;
 using System.IO;
-using static NeuralNetwork.MathUtil;
+using static NeuralNetworks.MathUtil;
 
-namespace NeuralNetwork
+namespace NeuralNetworks
 {
     internal static class IOReader
     {
@@ -115,7 +115,7 @@ namespace NeuralNetwork
             return Outputs;
         }
 
-        public static NeuralNetwork LoadNetworkFromAppData(string FileName)
+        public static LayerNetwork LoadNetworkFromAppData(string FileName)
         {
             string FilePath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + @"\MNIST_Net\" + FileName + ".csv";
             if (!File.Exists(FilePath))
@@ -161,14 +161,14 @@ namespace NeuralNetwork
                     Layer layer = new Layer(currNeurons, prevNeurons, Weights, Bias);
                     Layers[i - 1] = layer;
                 }
-                return new NeuralNetwork(Layers);
+                return new LayerNetwork(Layers);
             }
             catch
             {
                 throw new Exception("Error: file was not a correctly formatted NeuralNetwork file.");
             }
         }
-        public static NeuralNetwork LoadNetworkFromPath(string FilePath)
+        public static LayerNetwork LoadNetworkFromPath(string FilePath)
         {
             if (!File.Exists(FilePath))
             {
@@ -213,7 +213,7 @@ namespace NeuralNetwork
                     Layer layer = new Layer(currNeurons, prevNeurons, Weights, Bias);
                     Layers[i - 1] = layer;
                 }
-                return new NeuralNetwork(Layers);
+                return new LayerNetwork(Layers);
             }
             catch
             {

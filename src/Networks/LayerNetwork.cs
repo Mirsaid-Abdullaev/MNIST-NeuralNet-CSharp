@@ -2,12 +2,12 @@
 using System.IO;
 using System.Text;
 
-namespace NeuralNetwork
+namespace NeuralNetworks
 {
-    internal class NeuralNetwork
+    internal class LayerNetwork: INetwork
     {
         public Layer[] Layers;
-        public NeuralNetwork(int[] LayersData) //LayersData holds number of neurons in each layer in the network e.g. {2, 3, 1}, {100, 150, 50, 10, 8} etc.
+        public LayerNetwork(int[] LayersData) //LayersData holds number of neurons in each layer in the network e.g. {2, 3, 1}, {100, 150, 50, 10, 8} etc.
         {
             Layers = new Layer[LayersData.Length];
             Layers[0] = new Layer(LayersData[0], 0);
@@ -17,12 +17,12 @@ namespace NeuralNetwork
             }
         }
 
-        public NeuralNetwork(Layer[] Layers) //for loading from storage
+        public LayerNetwork(Layer[] Layers) //for loading from storage
         {
             this.Layers = Layers;
         }
 
-        public void SaveNetwork(string FileName)
+        public override void SaveNetwork(string FileName)
         {
             string FilePath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + @"\MNIST_Net\" + FileName + ".csv";
             if (!Directory.Exists(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + @"\MNIST_Net\"))
@@ -34,7 +34,7 @@ namespace NeuralNetwork
             sw.Flush();
         }
 
-        private string GetNetworkData()
+        protected override string GetNetworkData()
         {
             StringBuilder stringBuilder = new StringBuilder();
             stringBuilder.AppendLine(Layers.Length.ToString());

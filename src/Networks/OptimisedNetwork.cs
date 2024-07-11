@@ -2,9 +2,9 @@
 using System.IO;
 using System.Text;
 
-namespace NeuralNetwork
+namespace NeuralNetworks
 {
-    internal class OptimisedNetwork
+    internal class OptimisedNetwork: INetwork
     {
         public double[][][] Weights; //first dimension is layer number, second dimension is previous neuron index, third is current neuron index
         public double[][] Biases; //first dimension is layer number, second is the current neuron index
@@ -73,7 +73,7 @@ namespace NeuralNetwork
             return Math.Sqrt(-2 * Math.Log(1 - random.NextDouble())) * Math.Cos(2 * Math.PI * random.NextDouble());
         }
 
-        public void SaveNetwork(string FileName)
+        public override void SaveNetwork(string FileName)
         {
             string FilePath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + @"\MNIST_Net\" + FileName + ".csv";
             if (!Directory.Exists(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + @"\MNIST_Net\"))
@@ -84,7 +84,7 @@ namespace NeuralNetwork
             sw.Write(GetNetworkData());
             sw.Flush();
         }
-        private string GetNetworkData()
+        protected override string GetNetworkData()
         {
             StringBuilder stringBuilder = new StringBuilder();
             stringBuilder.AppendLine(LayerCount.ToString());

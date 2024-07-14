@@ -1,9 +1,9 @@
-﻿using System;
-using System.Text;
+﻿using System.Text;
+using System;
 
 namespace NeuralNetworks
 {
-    internal class Layer
+    internal class MomentumLayer
     {
         public int NeuronCount; //number of neurons in the current layer
         public int PrevNeuronCount; //number of neurons in prev layer
@@ -13,7 +13,11 @@ namespace NeuralNetworks
         public readonly double[] dCdZ; //As above, but each index is the same neuron's dC/dZ value (dC/dZ(n) = dC/da(n) * da(n)/dz(n) = 2 * (a(n) - y) * f'(z(n)))
         public readonly double[][] Weights;
 
-        public Layer(int Neurons, int PrevNeurons) //setting all weights and biases for all neurons in one go
+        // ADDITION TO THE LAYER CLASS - THESE ARRAYS HOLD THE EXPONENTIAL MOVING AVERAGES OF THE PREVIOUS DC/DW VALUES //
+        public readonly double[][] MomentumWeights; //mw(n) = momentum_rate * mw(n - 1) + (1 - momentum_rate) * dC/dw(n), mw(0) = 0
+        public readonly double[] MomentumBias; //mb(n) = momentum_rate * mb(n - 1) + (1 - momentum_rate) * dC/db(n), mb(0) = 0
+
+        public MomentumLayer(int Neurons, int PrevNeurons) //setting all weights and biases for all neurons in one go
         {
             NeuronCount = Neurons;
             PrevNeuronCount = PrevNeurons;
@@ -26,9 +30,13 @@ namespace NeuralNetworks
                 Bias = new double[NeuronCount];
                 dCdZ = new double[NeuronCount];
 
+                MomentumWeights = new double[PrevNeuronCount][];
+                MomentumBias = new double[NeuronCount];
+
                 for (int i = 0; i < PrevNeuronCount; i++)
                 {
                     Weights[i] = new double[NeuronCount];
+                    MomentumWeights[i] = new double[NeuronCount];
                     for (int j = 0; j < NeuronCount; j++)
                     {
                         Weights[i][j] = GetRandom() / temp;
@@ -41,16 +49,22 @@ namespace NeuralNetworks
             }
             Outputs = new double[NeuronCount]; //all layers have output layer, as input layer has a(0) which are just the network inputs
         }
-        public Layer(int Neurons, int PrevNeurons, double[][] Weights, double[] Bias) //for loading a layer from storage
+        public MomentumLayer(int Neurons, int PrevNeurons, double[][] Weights, double[] Bias) //for loading a layer from storage
         {
             NeuronCount = Neurons;
             PrevNeuronCount = PrevNeurons;
 
-            if (PrevNeuronCount > 0) //input layer
+            if (PrevNeuronCount > 0) //not input layer
             {
                 this.Weights = Weights;
                 this.Bias = Bias;
                 dCdZ = new double[NeuronCount];
+                MomentumWeights = new double[PrevNeuronCount][];
+                MomentumBias = new double[NeuronCount];
+                for (int i = 0; i < PrevNeuronCount; i++)
+                {
+                    MomentumWeights[i] = new double[NeuronCount];
+                }
             }
             Outputs = new double[NeuronCount];
         }

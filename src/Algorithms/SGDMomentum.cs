@@ -1,10 +1,10 @@
-﻿using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
+using System;
 using static NeuralNetworks.MathUtil;
 
 namespace NeuralNetworks
 {
-    internal class StochasticGradDescent: IAlgorithm
+    internal class SGDMomentum : IAlgorithm
     {
         protected override int ForwardPropClassify(double[] Inputs)
         {
@@ -13,7 +13,7 @@ namespace NeuralNetworks
              * 2) for each pair of curr and prev layer, calculate the necessary outputs of the next layers
              * 3) return the index of the maximum value in the final output array (index of classification i.e. label)
             */
-            var CurrNet = (LayerNetwork)Network;
+            var CurrNet = (MomentumNetwork)Network;
 
             for (int i = 0; i < Inputs.Length; i++)
             {
@@ -23,8 +23,8 @@ namespace NeuralNetworks
 
             for (int i = 1; i < CurrNet.Layers.Length; i++) //forward prop
             {
-                Layer currLayer = CurrNet.Layers[i];
-                Layer prevLayer = CurrNet.Layers[i - 1];
+                MomentumLayer currLayer = CurrNet.Layers[i];
+                MomentumLayer prevLayer = CurrNet.Layers[i - 1];
                 for (int currNeuron = 0; currNeuron < currLayer.NeuronCount; currNeuron++)
                 {
                     double output = currLayer.Bias[currNeuron];
@@ -99,7 +99,7 @@ namespace NeuralNetworks
              * 2) for each pair of curr and prev layer, calculate the necessary outputs of the next layers
              * 3) return resulting array of outputs
             */
-            var CurrNet = (LayerNetwork)Network;
+            var CurrNet = (MomentumNetwork)Network;
 
             for (int i = 0; i < Inputs.Length; i++)
             {
@@ -108,8 +108,8 @@ namespace NeuralNetworks
             int NumLayers = CurrNet.Layers.Length;
             for (int i = 1; i < NumLayers; i++) //forward prop
             {
-                Layer currLayer = CurrNet.Layers[i];
-                Layer prevLayer = CurrNet.Layers[i - 1];
+                MomentumLayer currLayer = CurrNet.Layers[i];
+                MomentumLayer prevLayer = CurrNet.Layers[i - 1];
                 for (int currNeuron = 0; currNeuron < currLayer.NeuronCount; currNeuron++)
                 {
                     double output = currLayer.Bias[currNeuron];
@@ -137,17 +137,17 @@ namespace NeuralNetworks
              * 2) dC/dA(n-1) = dC/dz(n) * w(n)
              * 3) dC/dZ(n-1) = dC/dA(n-1) * f'(z(n-1))
             */
-            var CurrNet = (LayerNetwork)Network;
+            var CurrNet = (MomentumNetwork)Network;
 
             for (int i = 0; i < CurrNet.Layers[^1].NeuronCount; i++) //setting the dC/dZ(n) values of the last layer neurons using FORMULA 1
             {
-                CurrNet.Layers[^1].dCdZ[i] = 2 * (CurrNet.Layers[^1].Outputs[i] - Target[i]) * Sigmoid_Deriv(CurrNet.Layers[^1].Outputs[i]); 
+                CurrNet.Layers[^1].dCdZ[i] = 2 * (CurrNet.Layers[^1].Outputs[i] - Target[i]) * Sigmoid_Deriv(CurrNet.Layers[^1].Outputs[i]);
             }
 
             for (int LIndex = CurrNet.Layers.Length - 2; LIndex > 0; LIndex--)
             {
-                Layer currLayer = CurrNet.Layers[LIndex]; //layer n - 1
-                Layer nextLayer = CurrNet.Layers[LIndex + 1]; //layer n
+                MomentumLayer currLayer = CurrNet.Layers[LIndex]; //layer n - 1
+                MomentumLayer nextLayer = CurrNet.Layers[LIndex + 1]; //layer n
 
                 for (int currNeuron = 0; currNeuron < currLayer.NeuronCount; currNeuron++)
                 {
@@ -165,29 +165,38 @@ namespace NeuralNetworks
         {
             /*
              * 1) for each pair of curr and prev layers, use curr dC/dZ(n) and prev a(n-1) to find dC/dW(n)
-             * 2) use dC/dW(n) * learnrate and subtract from current w(n)
-             * 3) use dC/db(n) = dC/dZ(n), to subtract dCdB(n) * learnrate from b(n)
+             * 2) calculate the new mw(n) and mb(n) values for each neuron/neuron pair using the derivatives
+             * 3) use mw(n) * learnrate and subtract from current w(n)
+             * 4) use dC/db(n) = dC/dZ(n), to subtract mb(n) * learnrate from b(n)
              * 
              * FORMULAS:
              * 4) dC/dw(n) = dC/dz(n) * a(n-1), n >= 1
              * 5) dC/dB(n) = dC/dz(n)
-             * 6) new_w(x) = old_w(x) - learnrate * dC/dW(x)
-             * 7) new_b(x) = old_b(x) - learnrate * dC/db(x)
+             * 6) new_w(x) = old_w(x) - learnrate * mw(x)
+             * 7) new_b(x) = old_b(x) - learnrate * mb(x)
+             * 8) mw(x) = momentum_rate * mw(x) + (1 - momentum_rate) * dC/dW(x)  
+             * 9) mb(x) = momentum_rate * mb(x) + (1 - momentum_rate) * dC/dB(x)  
             */
-            var CurrNet = (LayerNetwork)Network;
+            var CurrNet = (MomentumNetwork)Network;
 
             for (int LIndex = 1; LIndex < CurrNet.Layers.Length; LIndex++)
             {
-                Layer currLayer = CurrNet.Layers[LIndex];
-                Layer prevLayer = CurrNet.Layers[LIndex - 1];
+                MomentumLayer currLayer = CurrNet.Layers[LIndex];
+                MomentumLayer prevLayer = CurrNet.Layers[LIndex - 1];
                 for (int currNeuron = 0; currNeuron < currLayer.NeuronCount; currNeuron++)
                 {
                     for (int prevNeuron = 0; prevNeuron < prevLayer.NeuronCount; prevNeuron++)
                     {
-                        double dCdW = currLayer.dCdZ[currNeuron] * prevLayer.Outputs[prevNeuron]; //dC/dW calculation using FORMULA 4
+                        double dCdW = currLayer.dCdZ[currNeuron] * prevLayer.Outputs[prevNeuron]; //dCdW calculation using FORMULA 4
                         double dCdB = currLayer.dCdZ[currNeuron]; //dCdB using FORMULA 5;
-                        currLayer.Weights[prevNeuron][currNeuron] -= LearnRate * dCdW; //updating weight between prev and curr neuron using dC/dw(n) by FORMULA 4 and by FORMULA 6
-                        currLayer.Bias[currNeuron] -= LearnRate * dCdB; //same as above but using FORMULA 5 and FORMULA 7, so not multiplying by a(n - 1) as dz(n)/dB(n) = 1
+                        double WeightDelta = MOMENTUM_RATE * currLayer.MomentumWeights[prevNeuron][currNeuron] + (1 - MOMENTUM_RATE) * dCdW; //mw(x) calculation using FORMULA 8
+                        double BiasDelta = MOMENTUM_RATE * currLayer.MomentumBias[currNeuron] + (1 - MOMENTUM_RATE) * dCdB; //mb(x) calculation using FORMULA 9
+
+                        currLayer.MomentumWeights[prevNeuron][currNeuron] = WeightDelta;
+                        currLayer.MomentumBias[currNeuron] = BiasDelta;
+
+                        currLayer.Weights[prevNeuron][currNeuron] -= LearnRate * WeightDelta; //updating weight between prev and curr neuron using dC/dw(n) by FORMULA 8
+                        currLayer.Bias[currNeuron] -= LearnRate * BiasDelta; //same as above but using FORMULA 9, so not multiplying by a(n - 1) as dz(n)/dB(n) = 1
                     }
                 }
             }
@@ -195,17 +204,17 @@ namespace NeuralNetworks
         }
         // --- END BACKPROPAGATION --- //
 
-        public override void TrainNetwork(INetwork LayerNet, double[][] TrainData, double[][] TrainLabels, double[][] TestData, double[][] TestLabels, double LearnRate, int Epochs)
+        public override void TrainNetwork(INetwork MomentumNet, double[][] TrainData, double[][] TrainLabels, double[][] TestData, double[][] TestLabels, double LearnRate, int Epochs)
         {
             try
             {
-                var temp = (LayerNetwork) LayerNet;
+                var temp = (MomentumNetwork)MomentumNet;
             }
             catch
             {
-                throw new Exception("Error: current network instance is not of type LayerNetwork.");
+                throw new Exception("Error: current network instance is not of type MomentumNetwork.");
             }
-            this.Network = (LayerNetwork)LayerNet;
+            this.Network = (MomentumNetwork)MomentumNet;
 
             Stopwatch stopwatch = new Stopwatch();
             float prev_accuracy = GetPercentageAccuracy(TestData, TestLabels);
@@ -225,7 +234,7 @@ namespace NeuralNetworks
                 float accuracy = GetPercentageAccuracy(TestData, TestLabels);
                 if (accuracy > prev_accuracy) //need to save network
                 {
-                    LayerNet.SaveNetwork("TEST1");
+                    MomentumNet.SaveNetwork("TEST1");
                 }
                 prev_accuracy = accuracy;
                 stopwatch.Stop();
@@ -299,17 +308,17 @@ namespace NeuralNetworks
             }
             return (float)count / TestData.Length * 100;
         }
-        public override void BenchmarkConvergence(INetwork LayerNet, double[][] TrainData, double[][] TrainLabels, double[][] TestData, double[][] TestLabels)
+        public override void BenchmarkConvergence(INetwork MomentumNet, double[][] TrainData, double[][] TrainLabels, double[][] TestData, double[][] TestLabels)
         {
             try
             {
-                var temp = (LayerNetwork)LayerNet;
+                var temp = (MomentumNetwork)MomentumNet;
             }
             catch
             {
-                throw new Exception("Error: current network instance is not of type LayerNetwork.");
+                throw new Exception("Error: current network instance is not of type MomentumNetwork.");
             }
-            this.Network = (LayerNetwork)LayerNet;
+            this.Network = (MomentumNetwork)MomentumNet;
 
             Stopwatch stopwatch = new Stopwatch();
             float accuracy = GetPercentageAccuracy(TestData, TestLabels);
@@ -324,7 +333,7 @@ namespace NeuralNetworks
                 {
                     ForwardProp(TrainData[i]);
                     CalculateGradients(TrainLabels[i]);
-                    UpdateParameters(LEARN_RATE);
+                    UpdateParameters(M_LEARN_RATE);
                 }
                 stopwatch.Stop();
                 TimeSpan temp = stopwatch.Elapsed;

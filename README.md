@@ -27,8 +27,13 @@ I have explained how the formulas that are used in the inner workings of the neu
 <img src="/Diagrams/Backpropagation Process.png"></img>
 
 ## Current stage
-- Currently working on adding *momentum-based stochastic gradient descent* algorithm to try improve convergence performance, as well as adding a *mini-batch gradient descent* algorithm
-- Also aiming to get real runtime screenprints of benchmarking the two algorithms that have already been made in the project
+- Currently working on adding a ***mini-batch gradient descent*** algorithm to try and vectorise operations (forward prop and backprop can greatly benefit from this)
+- Another problem I am working on is the tuning of the learning rate to use with the network - this is proving to be a very important factor in convergence rate, so it is paramount that a good learning rate is found.
+- Next network training methods to build on in order to optimise speed and convergence: ***RMSProp*** optimisation for feedforward/backprop networks, ***Adam Optimisation (Adaptive Moment)***, and a hyperparameter tuning method - ***Learning rate decay*** methods using a custom exponential or discrete function of the epoch number in order to maximise training performance.
+<br>
+**12 July 2024**
+- Completed ***momentum-based stochastic gradient descent*** algorithm (found in [SGDMomentum.cs](/src/Algorithms/SGDMomentum.cs))
+- Added real benchmarks of the three existing algorithms for training, found in the screenprints in the [Benchmarks](/src/Benchmarks/) folder
 <br>
 **11 July 2024**
 - I have had to complete other tasks for other commitments, so this update took longer than expected. I have postponed the release of the momentum update and instead cleaned up the repository to change the way code is structured for easier scalability. 
@@ -145,7 +150,7 @@ public abstract class IAlgorithm
 }
 ```
 
-Finally, to show how you would set up a benchmark for the code, here is a sample of the code in Program.cs file that you would need to run:
+Finally, to show how you would set up a benchmark for the code, here is a sample of the code in the [**Program.cs**](/src/Program.cs) file that you would need to run:
 
 ```
 static void Main()
@@ -165,13 +170,19 @@ static void Main()
 
 ## Performance benchmarks - chronological developments
 The initial `LayerNetwork` class using a list of `Layer` classes for the feedforward/backpropagation process has the following performance metrics:
-<li>Average time for one training iteration: 13-15 seconds</li>
-<li>Average time for one validation iteration: 0.5 - 1 second</li>
+<li>Average time for one training iteration: 11.6 seconds</li>
+<li>Average time for one validation iteration: 0.61 seconds</li>
 <br>
 
 After adding the `OptimisedNetwork` class, which removed the use of a `Layer` class to store data and instead converted this data storage into a 3D array implementation, I have encountered a worsening of performance by a significant amount. The bencharks for the `OptimisedNetwork` class are as follows:
-- Average time for one training iteration: 50-60 seconds (over 3x more than using the `LayerNetwork` class)
-- Average time for one validation iteration: 2 - 2.5 seconds (same as above, over 2.5x slower)
+- Average time for one training iteration: 16.45 seconds (41% longer than using the `LayerNetwork` class)
+- Average time for one validation iteration: 0.99 seconds (62% longer than `LayerNetwork` class)
+<br>
+
+After implementing the `MomentumNetwork` and the `MomentumLayer` classes and their respective training algorithm class (`SGDMomentum`), this improved convergence performance slightly, but resulted in a slower epoch training time on average. However it must be noted that the learning rate has not been finetuned for this training type yet, so the longer epoch training time could be worthwhile if the final performance of the convergence improves drastically.
+- Average time for one training iteration: 18.89 seconds (63% longer than using the `LayerNetwork` class)
+- Average time for one validation iteration: 0.66 seconds (8.2% longer than `LayerNetwork` class)
+<br>
 
 ### Written by Mirsaid Abdullaev, 2024
 ## Contact Details

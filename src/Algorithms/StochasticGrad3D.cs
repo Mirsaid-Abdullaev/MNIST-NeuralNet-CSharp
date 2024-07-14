@@ -2,30 +2,22 @@
 using System.Diagnostics;
 using static NeuralNetworks.MathUtil;
 
-/*
- * This class was created as the training algorithm class for the OptimisedNetwork class, also inheriting the IAlgorithm interface
- * to maintain OOP best practices and keep the code easily maintainable and scalable. As talked about in the README, this version 
- * used 3D arrays instead of keeping a Layer class, which 3x the time taken to train per epoch so this Network class is not recommended
- * to be used because of its poor performance compared to using the Layer class.
-*/
-
-
 namespace NeuralNetworks
 {
 
     internal class StochasticGrad3D: IAlgorithm
     {
-        public override void TrainNetwork(INetwork TrainingNetwork, double[][] TrainData, double[][] TrainLabels, double[][] TestData, double[][] TestLabels, double LearnRate, int Epochs)
+        public override void TrainNetwork(INetwork Network3D, double[][] TrainData, double[][] TrainLabels, double[][] TestData, double[][] TestLabels, double LearnRate, int Epochs)
         {
             try
             {
-                var temp = (OptimisedNetwork)TrainingNetwork;
+                var temp = (OptimisedNetwork)Network3D;
             }
             catch
             {
-                throw new Exception("Error: current network instance is not of type LayerNetwork.");
+                throw new Exception("Error: current network instance is not of type OptimisedNetwork.");
             }
-            this.Network = (OptimisedNetwork)TrainingNetwork;
+            this.Network = (OptimisedNetwork)Network3D;
 
             Stopwatch stopwatch = new Stopwatch();
             float prev_accuracy = GetPercentageAccuracy(TestData, TestLabels);
@@ -286,17 +278,17 @@ namespace NeuralNetworks
             }
             return (float)count / TestData.Length * 100;
         }
-        public override void BenchmarkConvergence(INetwork Network, double[][] TrainData, double[][] TrainLabels, double[][] TestData, double[][] TestLabels)
+        public override void BenchmarkConvergence(INetwork Network3D, double[][] TrainData, double[][] TrainLabels, double[][] TestData, double[][] TestLabels)
         {
             try
             {
-                var temp = (OptimisedNetwork)Network;
+                var temp = (OptimisedNetwork)Network3D;
             }
             catch
             {
-                throw new Exception("Error: current network instance is not of type LayerNetwork.");
+                throw new Exception("Error: current network instance is not of type OptimisedNetwork.");
             }
-            this.Network = (OptimisedNetwork)Network;
+            this.Network = (OptimisedNetwork)Network3D;
 
             Stopwatch stopwatch = new Stopwatch();
             float accuracy = GetPercentageAccuracy(TestData, TestLabels);
@@ -311,7 +303,7 @@ namespace NeuralNetworks
                 {
                     ForwardProp(TrainData[i]);
                     CalculateGradients(TrainLabels[i]);
-                    UpdateParameters(0.0001);
+                    UpdateParameters(LEARN_RATE);
                 }
                 stopwatch.Stop();
                 TimeSpan temp = stopwatch.Elapsed;

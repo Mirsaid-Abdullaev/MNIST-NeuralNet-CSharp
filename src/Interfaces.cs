@@ -7,6 +7,10 @@
     }
     internal abstract class IAlgorithm
     {
+        protected const double MOMENTUM_RATE = 0.9; //used in SGDMomentum
+        protected const double M_LEARN_RATE = 0.2; //used in SGDMomentum
+        protected const double LEARN_RATE = 0.05; //used in non-momentum Algorithms
+
         public INetwork Network;
         protected abstract int ForwardPropClassify(double[] Inputs);
         protected abstract double[] ForwardProp(double[] Inputs);

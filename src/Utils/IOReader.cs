@@ -6,7 +6,7 @@ namespace NeuralNetworks
 {
     internal static class IOReader
     {
-        static readonly string projectDirectory = "D:\\NeuralNetwork";
+        static readonly string projectDirectory = @"path\of\project\folder";
 
         public static double[][] GetTestDataOutputs(int max = 0) //array of 10,000 image labels stored sequentially in one-hot encoding
         {
@@ -273,6 +273,58 @@ namespace NeuralNetworks
             }
         }
 
+        public static MiniBatchNetwork LoadMBNetworkFromPath(string FilePath)
+        {
+            if (!File.Exists(FilePath))
+            {
+                throw new Exception("Error: no file found at the specified location.");
+            }
+            try
+            {
+                string[] NetData = ParseFileCsv(FilePath);
+                int NoOfLayers = Convert.ToInt32(NetData[0]);
+                MiniBatchLayer[] Layers = new MiniBatchLayer[NoOfLayers];
+                string[] LayerData = NetData[1].Split(',');
+                Layers[0] = new MiniBatchLayer(Convert.ToInt32(LayerData[0]), 0);
+
+                //input layer has no prev neurons and no weights matrix or bias
+                for (int i = 2; i <= NoOfLayers; i++)
+                {
+                    LayerData = NetData[i].Split(',');
+                    int currNeurons = Convert.ToInt32(LayerData[0]);
+                    int prevNeurons = Convert.ToInt32(LayerData[1]);
+
+                    double[][] Weights = new double[prevNeurons][];
+                    double[] Bias = new double[currNeurons];
+                    int currRow = -1;
+                    for (int j = 2; j < 2 + prevNeurons * currNeurons; j++)
+                    {
+                        int col = (j - 2) % currNeurons;
+                        if (col == 0) //creating a new row
+                        {
+                            currRow++;
+                            Weights[currRow] = new double[currNeurons];
+                            Weights[currRow][col] = Convert.ToDouble(LayerData[j]);
+                        }
+                        else //on the same row
+                        {
+                            Weights[currRow][col] = Convert.ToDouble(LayerData[j]);
+                        }
+                    }
+                    for (int j = 2 + prevNeurons * currNeurons; j < LayerData.Length; j++)
+                    {
+                        Bias[j - 2 - prevNeurons * currNeurons] = Convert.ToDouble(LayerData[j]);
+                    }
+                    MiniBatchLayer layer = new MiniBatchLayer(currNeurons, prevNeurons, Weights, Bias);
+                    Layers[i - 1] = layer;
+                }
+                return new MiniBatchNetwork(Layers);
+            }
+            catch
+            {
+                throw new Exception("Error: file was not a correctly formatted MiniBatchNetwork file.");
+            }
+        }
 
         public static OptimisedNetwork LoadOptNetwork(string FilePath)
         {

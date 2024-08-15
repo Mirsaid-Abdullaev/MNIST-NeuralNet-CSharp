@@ -4,8 +4,7 @@ using static NeuralNetworks.MathUtil;
 
 namespace NeuralNetworks
 {
-
-    internal class StochasticGrad3D: IAlgorithm
+    internal class SGD3D: ISGDAlgorithm
     {
         public override void TrainNetwork(INetwork Network3D, double[][] TrainData, double[][] TrainLabels, double[][] TestData, double[][] TestLabels, double LearnRate, int Epochs)
         {
@@ -68,6 +67,7 @@ namespace NeuralNetworks
                     CurrNet.Outputs[LayerIndex][currNeuron] = Sigmoid(output);
                 }
             }
+            Network = CurrNet;
             return CurrNet.Outputs[^1];
         }
 
@@ -164,7 +164,7 @@ namespace NeuralNetworks
             var CurrNet = (OptimisedNetwork)Network;
             for (int i = 0; i < CurrNet.NeuronCounts[^1]; i++) //setting the dC/dZ(n) values of the last layer neurons using FORMULA 1
             {
-                CurrNet.dCdz[^1][i] = 2 * (CurrNet.Outputs[^1][i] - Target[i]) * Sigmoid_Deriv(CurrNet.Outputs[^1][i]);
+                CurrNet.dCdz[^1][i] = 2 * (CurrNet.Outputs[^1][i] - Target[i]) * Sigmoid_InvDeriv(CurrNet.Outputs[^1][i]);
             }
 
 
@@ -179,7 +179,7 @@ namespace NeuralNetworks
                     {
                         sum_dCdA += CurrNet.Weights[LayerIndex - 1][currNeuron][nextNeuron] * CurrNet.dCdz[LayerIndex + 1][nextNeuron]; //working out dC/da(n-1) using FORMULA 2
                     }
-                    CurrNet.dCdz[LayerIndex][currNeuron] = sum_dCdA * Sigmoid_Deriv(CurrNet.Outputs[LayerIndex][currNeuron]); //working out dC/dZ(n-1) using FORMULA 3
+                    CurrNet.dCdz[LayerIndex][currNeuron] = sum_dCdA * Sigmoid_InvDeriv(CurrNet.Outputs[LayerIndex][currNeuron]); //working out dC/dZ(n-1) using FORMULA 3
                 }
             }
             Network = CurrNet;
@@ -211,73 +211,6 @@ namespace NeuralNetworks
             }
             Network = CurrNet;
         }
-
-        public override float GetPercentageAccuracy(double[][] TestData, double[][] TestLabels)
-        {
-            int count = 0;
-            double max = -1;
-            int index = -1;
-            for (int i = 0; i < TestData.Length; i++)
-            {
-                int Label = ForwardPropClassify(TestData[i]);
-
-                if (TestLabels[i][0] > max)
-                {
-                    index = 0;
-                    max = TestLabels[i][0];
-                }
-                if (TestLabels[i][1] > max)
-                {
-                    index = 1;
-                    max = TestLabels[i][1];
-                }
-                if (TestLabels[i][2] > max)
-                {
-                    index = 2;
-                    max = TestLabels[i][2];
-                }
-                if (TestLabels[i][3] > max)
-                {
-                    index = 3;
-                    max = TestLabels[i][3];
-                }
-                if (TestLabels[i][4] > max)
-                {
-                    index = 4;
-                    max = TestLabels[i][4];
-                }
-                if (TestLabels[i][5] > max)
-                {
-                    index = 5;
-                    max = TestLabels[i][5];
-                }
-                if (TestLabels[i][6] > max)
-                {
-                    index = 6;
-                    max = TestLabels[i][6];
-                }
-                if (TestLabels[i][7] > max)
-                {
-                    index = 7;
-                    max = TestLabels[i][7];
-                }
-                if (TestLabels[i][8] > max)
-                {
-                    index = 8;
-                    max = TestLabels[i][8];
-                }
-                if (TestLabels[i][9] > max)
-                {
-                    index = 9;
-                }
-                if (Label == index) //checking if the maximum value is in the same index for expected and actual output
-                {
-                    count++;
-                }
-                max = -1;
-            }
-            return (float)count / TestData.Length * 100;
-        }
         public override void BenchmarkConvergence(INetwork Network3D, double[][] TrainData, double[][] TrainLabels, double[][] TestData, double[][] TestLabels)
         {
             try
@@ -303,7 +236,7 @@ namespace NeuralNetworks
                 {
                     ForwardProp(TrainData[i]);
                     CalculateGradients(TrainLabels[i]);
-                    UpdateParameters(LEARN_RATE);
+                    UpdateParameters(0.005);
                 }
                 stopwatch.Stop();
                 TimeSpan temp = stopwatch.Elapsed;

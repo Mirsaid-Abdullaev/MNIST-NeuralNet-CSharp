@@ -4,6 +4,7 @@ namespace NeuralNetworks
 {
     internal static class MathUtil
     {
+        const double epsilon = 1e-10;
         public static double Sigmoid(double x)
         {
             if (x > 40)
@@ -22,8 +23,43 @@ namespace NeuralNetworks
             {
                 return 0;
             }
-            double y = Sigmoid(x); //y = sigmoid(x)
+
+            double y = Sigmoid(x);
+            
             return y * (1 - y); //d(sigmoidx)/dx = y(1-y)
+        }
+        public static double Sigmoid_Inv(double x)
+        {
+
+            if (x < epsilon)
+            {
+                return -1000;
+            }
+            if (x + epsilon > 1)
+            {
+                return 1000;
+            }
+            return Math.Log(x / (1 - x));
+        }
+        public static double Sigmoid_InvDeriv(double x)
+        {
+            if (x < epsilon || x + epsilon > 1)
+            {
+                return 0;
+            }
+            double result = x;
+            result = Math.Log(result / (1 - result));
+            //result holds Sigmoid_Inv now
+
+            if (result > 40 || result < -40)
+            {
+                result = 0;
+            }
+            else
+            {
+                result = Sigmoid(result);
+            }
+            return result * (1 - result); //d(sigmoidx)/dx = y(1-y)
         }
         public static double ReLU(double x)
         {
@@ -132,6 +168,20 @@ namespace NeuralNetworks
             }
 
             return Result;
+        }
+
+        public static double Dot(double[] m1, double[] m2)
+        {
+            if (m1.Length != m2.Length)
+            {
+                throw new FormatException("Error: Array(s) passed into MathUtil.Dot() were not of equal length - cannot perform the Dot operation on these arrays.");
+            }
+            double result = 0;
+            for (int i = 0; i < m1.Length; i++)
+            {
+                result += m1[i] * m2[i];
+            }
+            return result;
         }
     }
 }

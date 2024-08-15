@@ -1,7 +1,7 @@
 # Neural Network - MNIST Network from Scratch
 ### Written by Mirsaid Abdullaev, 2024
 ## Summary
-My goal for this project is to build a neural network structure and algorithm that is purely written without any external dependencies or special machine learning libraries. The techniques used in the current solution are feedforward networks and the backpropagation algorithm for training the model. Furthermore, I will be focusing on optimisations of the process and speeding up the model's convergence and performance, using the MNIST dataset as a project for carrying out my benchmarks.</p>
+My goal for this project is to build a neural network structure and algorithm that is purely written without any external dependencies or special machine learning libraries. The techniques used in the current solution are feedforward networks and the backpropagation algorithm for training the model. Furthermore, I will be focusing on optimisations of the process and speeding up the model's convergence and performance, using the MNIST dataset as a project for carrying out my benchmarks.
 
 ## Goal
 Over time, I will be adding optimisations to the existing network to improve the model's raw performance out of the box. The MNIST dataset (a dataset of 70,000 images of handwritten digits with labels stored as 28x28 pixel images with a byte per pixel representing the pixel's intensity of black/white colour) provides a good size of network to test and train, as well as carry out benchmarking on the model's current performance.
@@ -27,26 +27,31 @@ I have explained how the formulas that are used in the inner workings of the neu
 <img src="/Diagrams/Backpropagation Process.png"></img>
 
 ## Current stage
+**Note** - the old implementations of the training algorithms had a mathematical flaw that meant the backpropagation process was not running correctly, which hindered the convergence massively. For that reason, the old benchmarks for convergence are not accurate measures of real performance, and new reruns of the benchmarking will need to be run to give actual valid results.
+
 - Currently working on adding a ***mini-batch gradient descent*** algorithm to try and vectorise operations (forward prop and backprop can greatly benefit from this)
-- Another problem I am working on is the tuning of the learning rate to use with the network - this is proving to be a very important factor in convergence rate, so it is paramount that a good learning rate is found.
 - Next network training methods to build on in order to optimise speed and convergence: ***RMSProp*** optimisation for feedforward/backprop networks, ***Adam Optimisation (Adaptive Moment)***, and a hyperparameter tuning method - ***Learning rate decay*** methods using a custom exponential or discrete function of the epoch number in order to maximise training performance.
 <br>
+
 **12 July 2024**
 - Completed ***momentum-based stochastic gradient descent*** algorithm (found in [SGDMomentum.cs](/src/Algorithms/SGDMomentum.cs))
-- Added real benchmarks of the three existing algorithms for training, found in the screenprints in the [Benchmarks](/src/Benchmarks/) folder
+- Added real benchmarks of the three existing algorithms for training, found in the screenprints in the [Benchmarks](/Benchmarks/) folder
 <br>
+
 **11 July 2024**
 - I have had to complete other tasks for other commitments, so this update took longer than expected. I have postponed the release of the momentum update and instead cleaned up the repository to change the way code is structured for easier scalability. 
-- There are now abstract classes for implementing different training algorithms and network structures whilst keeping end-user usage in code the same. These can be found in the [Interfaces.cs](/src/Interfaces.cs) file. These define the standard set of subroutines that need to be included in all subsequent implementations of network structures or new training algorithms, reducing the complexity of the final usage of the code.
+- There are now abstract classes for implementing different training algorithms and network structures whilst keeping end-user usage in code the same. These can be found in the [Interfaces](/src/Interfaces/) folder. These define the standard set of subroutines that need to be included in all subsequent implementations of network structures or new training algorithms, reducing the complexity of the final usage of the code.
 - Existing networks have been updated to conform to these standards, which were the old `NeuralNetwork` and `OptimisedNetwork` classes. These are now found in the [src/Networks](/src/Networks/) folder, and any future networks will be added into this folder. Note: `NeuralNetwork` has been renamed `LayerNetwork` for clarity.
-- Similarly, existing algorithms to train the networks have been updated, and are stored in the [src/Algorithms](/src/Algorithms) folder. Another note: the original training algorithm has been renamed `StochasticGradDescent` to allow me to add new algorithms and name them accordingly. `StochasticGrad3D` is the algorithm class to use to train the `OptimisedNetwork` class. Functionality is still the same and implementation only has a minor change, as the algorithm classes are not static anymore (shown below).
+- Similarly, existing algorithms to train the networks have been updated, and are stored in the [src/Algorithms](/src/Algorithms) folder. Another note: the original training algorithm has been renamed `SGD` to allow me to add new algorithms and name them accordingly. `SGD3D` is the algorithm class to use to train the `OptimisedNetwork` class. Functionality is still the same and implementation only has a minor change, as the algorithm classes are not static anymore (shown below).
 <br>
+
 **21 June 2024**
 - I have now also added an `OptimisedNetwork` class, and class-specific methods to utilise this to train a neural network. This class mimics the way that my original `NeuralNetwork` class works, albeit I tried to see whether 3D-array use instead of a `Layer` class list. This has proven to be a lot less effective in terms of performance however.
 - I am currently working on implementing my first mathematical optimisation to improve convergence, and I am preparing a benchmark for measuring model convergence speed. This will be using a set amount of training iterations (100) and the same predefined starting weights and biases matrices to keep the benchmarking fair. The accuracy rate after 100 training iterations will be the third statistic to measure.
 - I have created the benchmark method to formally collect all the performance data during runtime, the static method `Algorithm.BenchmarkConvergence()` which calculates average time per training/validation epoch, average improvement in accuracy per epoch and the final accuracy of the network, while keeping the test fair by using the same starting parameters as saved in the `/Utils/ConvergenceTestnet.csv` file in this repository
 - Usage of the Benchmark method shown below as well.
 <br>
+
 **20 June 2024**
 - I have created a network model that can perform feedforward propagation as well as backpropagation for training the model on the MNIST dataset. I have written my own `IOReader` class that I use to parse and load the data from the MNIST files into the program, I have made a `NeuralNetwork` class that holds an array of `Layer` classes, and a `Layer` class that holds each layer's respective weights matrix, bias matrix, output values and gradient matrix for use in backpropagation.
 
@@ -58,7 +63,7 @@ int[] LayerStructure = new int[] {784, 50, 10};
 LayerNetwork testNetwork = new LayerNetwork(LayerStructure);
 ```
 
-There is a `StochasticGradDescent` class that is responsible for providing training for the neural network model through the use of feedforward and backpropagation processes. It is used through calling the void method `TrainNetwork()` with this signature.
+There is a `SGD` class that is responsible for providing training for the neural network model through the use of feedforward and backpropagation processes. It is used through calling the void method `TrainNetwork()` with this signature.
 
 **`Network`** must be already initialised as shown in the previous example
 
@@ -70,10 +75,12 @@ There is a `StochasticGradDescent` class that is responsible for providing train
 
 **`TestLabels`** should have all the corresponding labels for the given test data items, and the data items must be the same length as the train labels.
 
+**`LearnRate`** should have the learn rate to be used for the backpropagation (recommended 0.005 for the `SGD` class).
+
 **`Epochs`** should specify the number of training epochs to perform by the algorithm.
 
 ```
-public class StochasticGradDescent
+public class SGD
 {
     public void TrainNetwork(LayerNetwork Network, double[][] TrainData, double[][] TrainLabels, double[][] TestData, double[][] TestLabels, double LearnRate, int Epochs);
 }
@@ -135,13 +142,13 @@ static void Main()
 
     LayerNetwork Network = new LayerNetwork(LayerStructure); //this will create the layer classes required for the network and set the initial parameters
 
-    StochasticGradDescent TrainAlg = new StochasticGradDescent();
+    SGD TrainAlg = new SGD();
 
-    TrainAlg.TrainNetwork(Network, TrainData, TrainLabels, TestData, TestLabels, 0.015, 50); //you can tune the learning rate based on convergence performance, and number of epochs is variable too
+    TrainAlg.TrainNetwork(Network, TrainData, TrainLabels, TestData, TestLabels, 0.005, 50); //you can tune the learning rate based on convergence performance, and number of epochs is variable too
 }
 ```
 
-As described above, the addition of the benchmarking method is implemented in all `IAlgorithm` inheriting classes as well. It is almost identical to the `TrainNetwork()` method, but does not take in a learning rate (it is fixed as 0.05 in the code) and it does not take in number of epochs (also fixed in the code, at 100). It outputs the benchmark results upon completing the 100 iterations. Here is the signature for the `BenchmarkConvergence()` method:
+As described above, the addition of the benchmarking method is implemented in all `IAlgorithm` inheriting classes as well. It is almost identical to the `TrainNetwork()` method, but does not take in a learning rate (it is fixed as 0.005 in the code) and it does not take in number of epochs (also fixed in the code, at 100). It outputs the benchmark results upon completing the 100 iterations. Here is the signature for the `BenchmarkConvergence()` method:
 
 ```
 public abstract class IAlgorithm
@@ -162,27 +169,14 @@ static void Main()
     double[][] TestData = IOReader.GetTestDataInputs();
     double[][] TestLabels = IOReader.GetTestDataOutputs();
 
-    StochasticGradDescent TrainAlg = new StochasticGradDescent();
+    SGD TrainAlg = new SGD();
 
     TrainAlg.BenchmarkConvergence(network, TrainData, TrainLabels, TestData, TestLabels);    
 }
 ```
 
 ## Performance benchmarks - chronological developments
-The initial `LayerNetwork` class using a list of `Layer` classes for the feedforward/backpropagation process has the following performance metrics:
-<li>Average time for one training iteration: 11.6 seconds</li>
-<li>Average time for one validation iteration: 0.61 seconds</li>
-<br>
-
-After adding the `OptimisedNetwork` class, which removed the use of a `Layer` class to store data and instead converted this data storage into a 3D array implementation, I have encountered a worsening of performance by a significant amount. The bencharks for the `OptimisedNetwork` class are as follows:
-- Average time for one training iteration: 16.45 seconds (41% longer than using the `LayerNetwork` class)
-- Average time for one validation iteration: 0.99 seconds (62% longer than `LayerNetwork` class)
-<br>
-
-After implementing the `MomentumNetwork` and the `MomentumLayer` classes and their respective training algorithm class (`SGDMomentum`), this improved convergence performance slightly, but resulted in a slower epoch training time on average. However it must be noted that the learning rate has not been finetuned for this training type yet, so the longer epoch training time could be worthwhile if the final performance of the convergence improves drastically.
-- Average time for one training iteration: 18.89 seconds (63% longer than using the `LayerNetwork` class)
-- Average time for one validation iteration: 0.66 seconds (8.2% longer than `LayerNetwork` class)
-<br>
+**Note** - previous benchmarks that can be viewed from the commit history in this file are invalid due to the previously-described mathematical error in computing the gradients. Therefore, new performance benchmarks will be run and showcased here later.
 
 ### Written by Mirsaid Abdullaev, 2024
 ## Contact Details

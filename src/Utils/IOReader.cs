@@ -13,7 +13,7 @@ namespace NeuralNetworks
             double[][] Outputs;
 
 
-            using (FileStream ifsLabels = new FileStream(projectDirectory + @"\MNIST\t10k-labels.idx1-ubyte", FileMode.Open))
+            using (FileStream ifsLabels = new FileStream(projectDirectory + @"\MNIST_DATASET\t10k-labels.idx1-ubyte", FileMode.Open))
             {
                 using BinaryReader brLabels = new BinaryReader(ifsLabels);
                 brLabels.ReadBigInt32(); //magic int, not required
@@ -36,7 +36,7 @@ namespace NeuralNetworks
         {
             double[][] Outputs;
 
-            using (FileStream ifsLabels = new FileStream(projectDirectory + @"\MNIST\train-labels.idx1-ubyte", FileMode.Open))
+            using (FileStream ifsLabels = new FileStream(projectDirectory + @"\MNIST_DATASET\train-labels.idx1-ubyte", FileMode.Open))
             {
                 using BinaryReader brLabels = new BinaryReader(ifsLabels);
                 brLabels.ReadBigInt32(); //magic int, no purpose
@@ -60,7 +60,7 @@ namespace NeuralNetworks
         {
             double[][] Outputs;
 
-            using (FileStream ifsImages = new FileStream(projectDirectory + @"\MNIST\train-images.idx3-ubyte", FileMode.Open))
+            using (FileStream ifsImages = new FileStream(projectDirectory + @"\MNIST_DATASET\train-images.idx3-ubyte", FileMode.Open))
             {
                 using BinaryReader brImages = new BinaryReader(ifsImages);
                 brImages.ReadBigInt32(); //a magic number int, dont need this
@@ -88,7 +88,7 @@ namespace NeuralNetworks
         {
             double[][] Outputs; //each row is an image
 
-            using (FileStream ifsImages = new FileStream(projectDirectory + @"\MNIST\t10k-images.idx3-ubyte", FileMode.Open))
+            using (FileStream ifsImages = new FileStream(projectDirectory + @"\MNIST_DATASET\t10k-images.idx3-ubyte", FileMode.Open))
             {
                 using BinaryReader brImages = new BinaryReader(ifsImages);
                 brImages.ReadBigInt32(); //a magic number int, dont need this
